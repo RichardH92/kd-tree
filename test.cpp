@@ -18,6 +18,7 @@ static void test_sort_points();
 static void test_kd_tree_1d();
 static void test_nearest_neighbor_1d();
 static void time_comparison();
+static void time_comparison_multiple_searches();
 
 int total = 0;
 int passed = 0;
@@ -35,9 +36,10 @@ int main() {
 	cout << "\r\nPassed tests: " << passed << "/" << total << "\r\n\r\n";
 
 	time_comparison();
+	time_comparison_multiple_searches();
 
-	char test;
-	cin >> test;
+	//char test;
+	//cin >> test;
 }
 
 static void test_point_equals_1d() {
@@ -316,6 +318,8 @@ static void test_nearest_neighbor_1d() {
 }
 
 static void time_comparison() {
+	cout << "time_comparison:\r\n";
+
 	vector<Point<5, string>> points;
 	Point<5, string> test_point("Test");
 	test_point[0] = 45.6;
@@ -363,9 +367,73 @@ static void time_comparison() {
 
 	cout << "kNN search time: " << knn_time << "\r\n";
 
-	double increase = knn_time / linear_time * 100;
-	cout << "Percent increase: " << increase << "\r\n";
+	double increase = linear_time / knn_time;
+	cout << "kNN search was " << increase << " times faster.\r\n";
 
 	assert(min_point_linear == min_point_knn);
 
+}
+
+static void time_comparison_multiple_searches() {
+	cout << "\r\ntime_comparison_multiple_searches:\r\n";
+
+	size_t num_points = 10000;
+	size_t num_searches = 10000;
+
+	srand (time(NULL));
+
+	//build the vector
+	vector<Point<5, string>> points;
+	for (size_t i = 0; i < num_points; i++) {
+		Point<5, string> p("Test");
+
+		for (size_t j = 0; j < 3; j++)
+			p[j] = rand() % 100 - 100;
+
+		points.push_back(p);
+	}
+
+	clock_t linear_begin = clock();
+
+	for (size_t i = 0; i < num_searches; i++) {
+		Point<5, string> test_point("Test");
+		for (size_t i = 0; i < 5; i++)
+			test_point[i] = rand() % 100 - 100;
+
+		double min_dist = 999999;
+		Point<5, string> min_point_linear("Temp");
+
+		for (size_t i = 0; i < num_points; i++) {
+			if (point_distance(points[i], test_point) < min_dist) {
+				min_dist = point_distance(points[i], test_point);
+				min_point_linear = points[i];
+			}
+		}
+	}
+
+	clock_t linear_end = clock();
+	double linear_time = ((double) (linear_end - linear_begin)) / CLOCKS_PER_SEC;
+
+	cout << "Linear search time: " << linear_time << "\r\n";
+
+
+
+	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points);
+
+	clock_t knn_begin = clock();
+
+	for (size_t i = 0; i < num_searches; i++) {
+		Point<5, string> test_point("Test");
+		for (size_t i = 0; i < 5; i++)
+			test_point[i] = rand() % 100 - 100;
+		tree->nearest_neighbor(test_point);
+	}
+
+	clock_t knn_end = clock();
+	double knn_time = ((double) (knn_end - knn_begin)) / CLOCKS_PER_SEC;
+
+	cout << "kNN search time: " << knn_time << "\r\n";
+
+	double increase = linear_time / knn_time;
+	cout << "kNN search was " << increase << " times faster.\r\n";
 }
