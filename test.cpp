@@ -2,6 +2,8 @@
 #include "Node.h"
 #include "KD_Tree.h"
 #include <iostream>
+#include <stdlib.h>
+#include <vector>
 
 using namespace std;
 
@@ -12,6 +14,8 @@ static void test_point_distance();
 static void test_point_equals_6d();
 static void test_sort_points();
 static void test_kd_tree_1d();
+static void test_nearest_neighbor_1d();
+static void time_comparison();
 
 int total = 0;
 int passed = 0;
@@ -24,8 +28,11 @@ int main() {
 	test_point_equals_6d();
 	test_sort_points();
 	test_kd_tree_1d();
+	test_nearest_neighbor_1d();
 
-	cout << "\r\nPassed tests: " << passed << "/" << total;
+	cout << "\r\nPassed tests: " << passed << "/" << total << "\r\n\r\n";
+
+	time_comparison();
 
 	char test;
 	cin >> test;
@@ -260,4 +267,52 @@ static void test_kd_tree_1d() {
 
 	passed++;
 	cout << "PASS\r\n";
+}
+
+static void test_nearest_neighbor_1d() {
+	cout << "test_nearest_neighbor_1d:\t\t";
+	total++;
+
+	Point<1, int> a(1);
+	a[0] = 89;
+	Point<1, int> b(1);
+	b[0] = 3;
+	Point<1, int> c(1);
+	c[0] = 32;
+	Point<1, int> d(1);
+	d[0] = 8;
+	Point<1, int> e(1);
+	e[0] = 2;
+	Point<1, int> f(1);
+	f[0] = 26;
+	Point<1, int> g(1);
+	g[0] = 12;
+	Point<1, int> h(1);
+	h[0] = 5;
+
+	vector<Point<1, int>> points;
+	points.push_back(a);
+	points.push_back(b);
+	points.push_back(c);
+	points.push_back(d);
+	points.push_back(e);
+	points.push_back(f);
+	points.push_back(g);
+	points.push_back(h);
+
+	KD_Tree<1, int> tree(points);
+
+	Point<1, int> i(1);
+	i[0] = 3.2;
+
+	if(tree.nearest_neighbor(i) == b) {
+		cout << "PASS\r\n";
+		passed++;
+	}
+	else
+		cout << "FAIL\r\n";
+}
+
+static void time_comparison() {
+
 }

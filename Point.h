@@ -24,7 +24,7 @@ private:
 };
 
 template <size_t N, typename ElemType>
-Point<N, ElemType>::Point(ElemType p_elem) {
+Point<N, ElemType>::Point(ElemType p_elem) : elem(p_elem){
 	elem = p_elem;
 }
 
@@ -70,7 +70,7 @@ bool operator!=(Point<N, ElemType> &a, Point<N, ElemType> &b) {
 template <size_t N, typename ElemType>
 void sort_points(vector<Point<N, ElemType>> &points, size_t dimension) {
 	assert(dimension < N);
-	quicksort_points(points, 0, points.size() - 1, dimension);
+	quicksort_points(points, 0, (int) points.size() - 1, dimension);
 }
 
 template <size_t N, typename ElemType>
@@ -80,6 +80,11 @@ void quicksort_points(vector<Point<N, ElemType>> &points, int low, int high, siz
 		quicksort_points(points, low, pivot - 1, dimension);
 		quicksort_points(points, pivot + 1, high, dimension);
 	}
+}
+
+
+static size_t choose_pivot(int low, int high) {
+	return (high + low) / 2;
 }
 
 template <size_t N, typename ElemType>
@@ -93,7 +98,7 @@ size_t partition_points(vector<Point<N, ElemType>> &points, int low, int high, s
 	points[high] = temp;
 	size_t store_index = low;
 
-	for (size_t i = low; i < high; i++) {
+	for (int i = low; i < high; i++) {
 		if (points[i][dimension] < pivot_value[dimension]) {
 			temp = points[i];
 			points[i] = points[store_index];
@@ -107,10 +112,6 @@ size_t partition_points(vector<Point<N, ElemType>> &points, int low, int high, s
 	points[high] = temp;
 
 	return store_index;
-}
-
-size_t choose_pivot(int low, int high) {
-	return (high + low) / 2;
 }
 
 #endif
