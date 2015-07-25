@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
+#include <cstdlib>
+#include <time.h>
 
 using namespace std;
 
@@ -314,5 +316,56 @@ static void test_nearest_neighbor_1d() {
 }
 
 static void time_comparison() {
+	vector<Point<5, string>> points;
+	Point<5, string> test_point("Test");
+	test_point[0] = 45.6;
+	test_point[1] = 33.4;
+	test_point[2] = 56.3;
+	test_point[3] = -15.6;
+	test_point[4] = -93.4;
+
+	srand (time(NULL));
+
+	for (size_t i = 0; i < 100000; i++) {
+		Point<5, string> p("Test");
+
+		for (size_t j = 0; j < 3; j++)
+			p[j] = rand() % 100 - 100;
+
+		points.push_back(p);
+	}
+
+	clock_t linear_begin = clock();
+
+	double min_dist = 999999;
+	Point<5, string> min_point_linear("Temp");
+
+	for (size_t i = 0; i < 100000; i++) {
+		if (point_distance(points[i], test_point) < min_dist) {
+			min_dist = point_distance(points[i], test_point);
+			min_point_linear = points[i];
+		}
+	}
+
+	clock_t linear_end = clock();
+	double linear_time = ((double) (linear_end - linear_begin)) / CLOCKS_PER_SEC;
+
+	cout << "Linear search time: " << linear_time << "\r\n";
+
+	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points);
+
+	Point<5, string> min_point_knn("Temp");
+
+	clock_t knn_begin = clock();
+	min_point_knn = tree->nearest_neighbor(test_point);
+	clock_t knn_end = clock();
+	double knn_time = ((double) (knn_end - knn_begin)) / CLOCKS_PER_SEC;
+
+	cout << "kNN search time: " << knn_time << "\r\n";
+
+	double increase = knn_time / linear_time * 100;
+	cout << "Percent increase: " << increase << "\r\n";
+
+	assert(min_point_linear == min_point_knn);
 
 }
