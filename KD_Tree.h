@@ -11,6 +11,7 @@ template <size_t N, typename ElemType>
 class KD_Tree {
 public:
 	KD_Tree(vector<Point<N, ElemType>> &points);
+	~KD_Tree();
 	size_t num_dimensions() const; 
 	Node<N, ElemType> *root;
 	Point<N, ElemType> &nearest_neighbor(Point<N, ElemType> &test_point);
@@ -29,6 +30,12 @@ private:
 template <size_t N, typename ElemType>
 KD_Tree<N, ElemType>::KD_Tree(vector<Point<N, ElemType>> &points) {
 	root = build_tree(0, points);
+}
+
+template <size_t N, typename ElemType>
+KD_Tree<N, ElemType>::~KD_Tree() {
+	if (root != NULL)
+		delete root;
 }
 
 template <size_t N, typename ElemType>
@@ -70,6 +77,9 @@ size_t KD_Tree<N, ElemType>::get_median(vector<Point<N, ElemType>> points) {
 
 template <size_t N, typename ElemType>
 Point<N, ElemType> &KD_Tree<N, ElemType>::nearest_neighbor(Point<N, ElemType> &test_point) {
+	best_guess = NULL;
+	best_dist = 9999999;
+
 	nearest_neighbor_helper(test_point, root, 0);
 
 	return best_guess->get_point(); 

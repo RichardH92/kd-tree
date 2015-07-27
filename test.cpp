@@ -17,7 +17,7 @@ static void test_point_equals_6d();
 static void test_sort_points();
 static void test_kd_tree_1d();
 static void test_nearest_neighbor_1d();
-static void time_comparison();
+static void test_nearest_neighbor_multiple_points();
 static void time_comparison_multiple_searches();
 
 int total = 0;
@@ -35,7 +35,7 @@ int main() {
 
 	cout << "\r\nPassed tests: " << passed << "/" << total << "\r\n\r\n";
 
-	time_comparison();
+	test_nearest_neighbor_multiple_points();
 	time_comparison_multiple_searches();
 
 	//char test;
@@ -317,20 +317,17 @@ static void test_nearest_neighbor_1d() {
 		cout << "FAIL\r\n";
 }
 
-static void time_comparison() {
-	cout << "time_comparison:\r\n";
+static void test_nearest_neighbor_multiple_points() {
+	cout << "\r\ntest_nearest_neighbor_multiple_points:\t";
 
-	vector<Point<5, string>> points;
-	Point<5, string> test_point("Test");
-	test_point[0] = 45.6;
-	test_point[1] = 33.4;
-	test_point[2] = 56.3;
-	test_point[3] = -15.6;
-	test_point[4] = -93.4;
+	size_t num_points = 1000;
+	size_t num_searches = 1000;
 
 	srand (time(NULL));
 
-	for (size_t i = 0; i < 100000; i++) {
+	//build the vector
+	vector<Point<5, string>> points;
+	for (size_t i = 0; i < num_points; i++) {
 		Point<5, string> p("Test");
 
 		for (size_t j = 0; j < 3; j++)
@@ -339,43 +336,41 @@ static void time_comparison() {
 		points.push_back(p);
 	}
 
-	clock_t linear_begin = clock();
+	//Build the tree
+	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points);
 
-	double min_dist = 999999;
-	Point<5, string> min_point_linear("Temp");
+	for (size_t i = 0; i < num_searches; i++) {
 
-	for (size_t i = 0; i < 100000; i++) {
-		if (point_distance(points[i], test_point) < min_dist) {
-			min_dist = point_distance(points[i], test_point);
-			min_point_linear = points[i];
+		Point<5, string> test_point("Test");
+		for (size_t i = 0; i < 5; i++)
+			test_point[i] = rand() % 100 - 100;
+
+		double min_dist = 999999;
+		Point<5, string> min_point_linear("Temp");
+
+		for (size_t i = 0; i < num_points; i++) {
+			if (point_distance(points[i], test_point) < min_dist) {
+				min_dist = point_distance(points[i], test_point);
+				min_point_linear = points[i];
+			}
+		}
+
+		Point<5, string> min_point_knn("Temp");
+		min_point_knn = tree->nearest_neighbor(test_point);
+
+		if (min_point_knn != min_point_linear) {
+			cout << "\r\n\r\nKD-Tree and linear search did not find the same point.\r\n";
+			cout << "KD-Tree point distance: " << point_distance(min_point_knn, test_point);
+			cout << "\r\nLinear point distance: " << min_dist;
 		}
 	}
 
-	clock_t linear_end = clock();
-	double linear_time = ((double) (linear_end - linear_begin)) / CLOCKS_PER_SEC;
-
-	cout << "Linear search time: " << linear_time << "\r\n";
-
-	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points);
-
-	Point<5, string> min_point_knn("Temp");
-
-	clock_t knn_begin = clock();
-	min_point_knn = tree->nearest_neighbor(test_point);
-	clock_t knn_end = clock();
-	double knn_time = ((double) (knn_end - knn_begin)) / CLOCKS_PER_SEC;
-
-	cout << "kNN search time: " << knn_time << "\r\n";
-
-	double increase = linear_time / knn_time;
-	cout << "kNN search was " << increase << " times faster.\r\n";
-
-	assert(min_point_linear == min_point_knn);
-
+	delete tree;
+	cout << "\r\n";
 }
 
 static void time_comparison_multiple_searches() {
-	cout << "\r\ntime_comparison_multiple_searches:\r\n";
+	cout << "\r\n\r\ntime_comparison_multiple_searches:\r\n\r\n";
 
 	size_t num_points = 10000;
 	size_t num_searches = 10000;
@@ -416,16 +411,19 @@ static void time_comparison_multiple_searches() {
 
 	cout << "Linear search time: " << linear_time << "\r\n";
 
-
-
+	clock_t tree_build_begin = clock();
 	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points);
+	clock_t tree_build_end = clock();
+	double build_time = ((double) (tree_build_end - tree_build_begin)) / CLOCKS_PER_SEC;
+
+	cout << "KD-Tree construction time: " << build_time << "\r\n";
 
 	clock_t knn_begin = clock();
-
 	for (size_t i = 0; i < num_searches; i++) {
 		Point<5, string> test_point("Test");
 		for (size_t i = 0; i < 5; i++)
 			test_point[i] = rand() % 100 - 100;
+
 		tree->nearest_neighbor(test_point);
 	}
 
@@ -436,4 +434,6 @@ static void time_comparison_multiple_searches() {
 
 	double increase = linear_time / knn_time;
 	cout << "kNN search was " << increase << " times faster.\r\n";
+
+	delete tree;
 }

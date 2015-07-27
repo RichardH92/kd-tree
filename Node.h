@@ -7,6 +7,7 @@ template <size_t N, typename ElemType>
 class Node {
 public:
 	Node(Point<N, ElemType> &point);
+	~Node();
 
 	Node *left = NULL;
 	Node *right = NULL;
@@ -23,6 +24,14 @@ template <size_t N, typename ElemType>
 Node<N, ElemType>::Node(Point<N, ElemType> &point) : p(point.get_elem()){
 	for (size_t i = 0; i < N; i++)
 		p[i] = point[i];
+}
+
+template <size_t N, typename ElemType>
+Node<N, ElemType>::~Node() {
+	if (left != NULL)
+		delete left;
+	if (right != NULL)
+		delete right;
 }
 
 template <size_t N, typename ElemType>
