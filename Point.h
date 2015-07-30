@@ -16,6 +16,7 @@ public:
 	Point(ElemType p_elem);
 	size_t num_dimensions() const;
 	double &operator[](size_t i);
+	//void operator=(Point<N, ElemType> &p);
 	ElemType &get_elem();
 
 private:
@@ -42,6 +43,15 @@ template <size_t N, typename ElemType>
 ElemType &Point<N, ElemType>::get_elem() {
 	return elem;
 }
+
+
+//template <size_t N, typename ElemType>
+//void Point<N, ElemType>::operator=(Point<N, ElemType> &p) {
+//	elem = p.get_elem();
+//
+//	for (size_t i = 0; i < N; i++)
+//		coords[i] = p[i];
+//}
 
 template <size_t N, typename ElemType>
 double point_distance(Point<N, ElemType> &a, Point<N, ElemType> &b) {

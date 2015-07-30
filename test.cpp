@@ -1,5 +1,5 @@
 #include "Point.h"
-#include "Node.h"
+#include "KD_Node.h"
 #include "KD_Tree.h"
 #include <iostream>
 #include <stdlib.h>
@@ -19,6 +19,7 @@ static void test_kd_tree_1d();
 static void test_nearest_neighbor_1d();
 static void test_nearest_neighbor_multiple_points();
 static void time_comparison_multiple_searches();
+static void time_comparison_two();
 
 int total = 0;
 int passed = 0;
@@ -37,9 +38,10 @@ int main() {
 
 	test_nearest_neighbor_multiple_points();
 	time_comparison_multiple_searches();
+	time_comparison_two();
 
-	//char test;
-	//cin >> test;
+	char test;
+	cin >> test;
 }
 
 static void test_point_equals_1d() {
@@ -327,6 +329,8 @@ static void test_nearest_neighbor_multiple_points() {
 
 	//build the vector
 	vector<Point<5, string>> points;
+	vector<Point<5, string>> points_two;
+
 	for (size_t i = 0; i < num_points; i++) {
 		Point<5, string> p("Test");
 
@@ -334,10 +338,11 @@ static void test_nearest_neighbor_multiple_points() {
 			p[j] = rand() % 100 - 100;
 
 		points.push_back(p);
+		points_two.push_back(p);
 	}
 
 	//Build the tree
-	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points);
+	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points_two);
 
 	for (size_t i = 0; i < num_searches; i++) {
 
@@ -349,7 +354,8 @@ static void test_nearest_neighbor_multiple_points() {
 		Point<5, string> min_point_linear("Temp");
 
 		for (size_t i = 0; i < num_points; i++) {
-			if (point_distance(points[i], test_point) < min_dist) {
+			Point<5, string> derp = points[i];
+			if (point_distance(derp, test_point) < min_dist) {
 				min_dist = point_distance(points[i], test_point);
 				min_point_linear = points[i];
 			}
@@ -372,8 +378,8 @@ static void test_nearest_neighbor_multiple_points() {
 static void time_comparison_multiple_searches() {
 	cout << "\r\n\r\ntime_comparison_multiple_searches:\r\n\r\n";
 
-	size_t num_points = 10000;
-	size_t num_searches = 10000;
+	size_t num_points = 100000;
+	size_t num_searches = 100000;
 
 	srand (time(NULL));
 
@@ -434,6 +440,65 @@ static void time_comparison_multiple_searches() {
 
 	double increase = linear_time / knn_time;
 	cout << "kNN search was " << increase << " times faster.\r\n";
+
+	delete tree;
+}
+
+static void time_comparison_two() {
+	cout << "\r\n\r\ntime_comparison_two:\r\n\r\n";
+
+	size_t num_points = 100000;
+	size_t num_searches = 100000;
+
+	srand(time(NULL));
+
+	//build the vector
+	vector<Point<5, string>> points;
+	vector<Point<5, string>> points_two;
+
+	for (size_t i = 0; i < num_points; i++) {
+		Point<5, string> p("Test");
+
+		for (size_t j = 0; j < 3; j++)
+			p[j] = rand() % 100 - 100;
+
+		points.push_back(p);
+		points_two.push_back(p);
+	}
+
+	KD_Tree<5, string> *tree = new KD_Tree<5, string>(points_two);
+
+	double linear_time = 0;
+	double knn_time = 0;
+
+	clock_t linear_begin = clock();
+
+	for (size_t i = 0; i < num_searches; i++) {
+		Point<5, string> test_point("Test");
+		for (size_t i = 0; i < 5; i++)
+			test_point[i] = rand() % 100 - 100;
+
+		double min_dist = 999999;
+		Point<5, string> min_point_linear("Temp");
+
+		clock_t linear_begin = clock();
+		for (size_t i = 0; i < num_points; i++) {
+			if (point_distance(points[i], test_point) < min_dist) {
+				min_dist = point_distance(points[i], test_point);
+				min_point_linear = points[i];
+			}
+		}
+		clock_t linear_end = clock();
+		linear_time += ((double)(linear_end - linear_begin)) / CLOCKS_PER_SEC;
+
+		clock_t knn_begin = clock();
+		tree->nearest_neighbor(test_point);
+		clock_t knn_end = clock();
+		knn_time += ((double)(knn_end - knn_begin)) / CLOCKS_PER_SEC;
+	}
+
+	cout << "Linear search time: " << linear_time << "\r\n";
+	cout << "kNN search time: " << knn_time << "\r\n";
 
 	delete tree;
 }

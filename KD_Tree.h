@@ -1,7 +1,7 @@
 #ifndef KD_TREE
 #define KD_TREE
 
-#include "Node.h"
+#include "KD_Node.h"
 #include "Point.h"
 #include <assert.h>
 #include <vector>
@@ -13,17 +13,17 @@ public:
 	KD_Tree(vector<Point<N, ElemType>> &points);
 	~KD_Tree();
 	size_t num_dimensions() const; 
-	Node<N, ElemType> *root;
+	KD_Node<N, ElemType> *root;
 	Point<N, ElemType> &nearest_neighbor(Point<N, ElemType> &test_point);
 
 private:
-	Node<N, ElemType> *best_guess = NULL;
+	KD_Node<N, ElemType> *best_guess = NULL;
 	double best_dist = 9999999;
 
-	Node<N, ElemType> *build_tree(size_t depth, vector<Point<N, ElemType>> &points);
+	KD_Node<N, ElemType> *build_tree(size_t depth, vector<Point<N, ElemType>> &points);
 	size_t get_median(vector<Point<N, ElemType>> points);
 	void sort_list(size_t depth, vector<Point<N, ElemType>> &points);
-	void nearest_neighbor_helper(Point<N, ElemType> &test_point, Node<N, ElemType> *curr, size_t depth);
+	void nearest_neighbor_helper(Point<N, ElemType> &test_point, KD_Node<N, ElemType> *curr, size_t depth);
 
 };
 
@@ -39,7 +39,7 @@ KD_Tree<N, ElemType>::~KD_Tree() {
 }
 
 template <size_t N, typename ElemType>
-Node<N, ElemType> *KD_Tree<N, ElemType>::build_tree(size_t depth, vector<Point<N, ElemType>> &points) {
+KD_Node<N, ElemType> *KD_Tree<N, ElemType>::build_tree(size_t depth, vector<Point<N, ElemType>> &points) {
 	if (points.empty())
 		return NULL;
 
@@ -59,15 +59,15 @@ Node<N, ElemType> *KD_Tree<N, ElemType>::build_tree(size_t depth, vector<Point<N
 		points.pop_back();
 	}
 
-	//Create a node out of the median point
-	Node<N, ElemType> *new_node;
-	new_node = new Node<N, ElemType>(points.back());
+	//Create a KD_Node out of the median point
+	KD_Node<N, ElemType> *new_KD_Node;
+	new_KD_Node = new KD_Node<N, ElemType>(points.back());
 	points.pop_back();
 
-	new_node->left = build_tree(depth + 1, points);
-	new_node->right = build_tree(depth + 1, list_two);
+	new_KD_Node->left = build_tree(depth + 1, points);
+	new_KD_Node->right = build_tree(depth + 1, list_two);
 
-	return new_node;
+	return new_KD_Node;
 }
 
 template <size_t N, typename ElemType>
@@ -82,12 +82,13 @@ Point<N, ElemType> &KD_Tree<N, ElemType>::nearest_neighbor(Point<N, ElemType> &t
 
 	nearest_neighbor_helper(test_point, root, 0);
 
+	assert(best_guess != NULL);
 	return best_guess->get_point(); 
 }
 
 template <size_t N, typename ElemType>
-void KD_Tree<N, ElemType>::nearest_neighbor_helper(Point<N, ElemType> &test_point, 
-	Node<N, ElemType> *curr, size_t depth) {
+inline void KD_Tree<N, ElemType>::nearest_neighbor_helper(Point<N, ElemType> &test_point, 
+	KD_Node<N, ElemType> *curr, size_t depth) {
 	if (curr == NULL)
 		return;
 
